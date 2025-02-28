@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>duskyAI Pexeso</title>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
       text-align: center;
@@ -83,7 +84,7 @@
       animation: bounce 0.5s infinite alternate;
     }
     
-    #controls {
+    #controls, #leaderboard-controls {
       margin: 15px auto;
       display: flex;
       justify-content: center;
@@ -128,6 +129,53 @@
       text-decoration: underline;
     }
     
+    /* Leaderboard styles */
+    #leaderboard-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    #leaderboard-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      max-height: 80%;
+      overflow-y: auto;
+    }
+    
+    #leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    #leaderboard-table th, #leaderboard-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    #submit-score-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    #submit-score-form input, #submit-score-form button {
+      padding: 10px;
+      font-family: 'Comic Neue', cursive;
+    }
+    
     @keyframes bounce {
       from { transform: scale(1); }
       to { transform: scale(1.1); }
@@ -162,273 +210,423 @@
 <body>
   <div id="game-container">
     <h1>duskyAI Pexeso</h1>
-    <p>Find the matching pairs!</p>
+  <p>Find the matching pairs!</p>
     
     <div id="controls">
       <button id="new-game">New Game</button>
       <button id="difficulty">Easy Mode</button>
       <button id="sound-toggle">Sound: On</button>
+      <button id="show-leaderboard">Leaderboard</button>
     </div>
     
     <div id="score-display">Matches: 0 / 8</div>
     <div id="timer">Time: 0s</div>
     <div id="sound-init">Click here to enable sounds</div>
     
-    <div id="game-board"></div>
+  <div id="game-board"></div>
     <div id="win-message">You win! 🎉</div>
   </div>
 
+  <!-- Leaderboard Modal -->
+  <div id="leaderboard-modal">
+    <div id="leaderboard-content">
+      <h2 id="leaderboard-title">Leaderboard</h2>
+      <table id="leaderboard-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Time</th>
+            <th>Difficulty</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+      
+      <div id="submit-score-form" style="display:none;">
+        <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+        <button id="submit-score">Submit Score</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Game configuration
-    const config = {
-      difficulty: 'easy', // 'easy', 'medium', 'hard'
-      soundEnabled: true,
-      soundsInitialized: false,
-      timeElapsed: 0,
-      timerInterval: null
-    };
-    
-    // Different emoji sets for variety
-    const emojiSets = {
-      animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🦁', '🐯', '🦄'],
-      food: ['🍎', '🍌', '🍓', '🍕', '🍦', '🍩', '🍪', '🍫', '🍭', '🍔', '🥨', '🧁'],
-      faces: ['😀', '😎', '🥳', '😍', '🤩', '😊', '🤔', '🤗', '😴', '🥺', '😂', '😋']
-    };
-    
-    // Sound effects using simple beep sounds generated with Web Audio API
-    const sounds = {};
-    
-    // Initialize sounds using Web Audio API
-    function initSounds() {
-      try {
-        // Create audio context
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-        
-        // Create different sounds
-        sounds.flip = createBeepSound(audioCtx, 220, 0.1); // A3 note, short
-        sounds.match = createBeepSound(audioCtx, 440, 0.2); // A4 note, medium
-        sounds.wrong = createBeepSound(audioCtx, 165, 0.2); // E3 note, medium
-        sounds.win = createFanfareSound(audioCtx); // Victory fanfare
-        
-        // Test sound
-        playSound('flip');
-        
-        // Update UI
-        config.soundsInitialized = true;
-        document.getElementById('sound-init').style.display = 'none';
-        console.log('Sounds initialized successfully');
-      } catch (error) {
-        console.error('Error initializing sounds:', error);
-        document.getElementById('sound-init').textContent = 'Sound not supported in your browser';
-      }
-    }
-    
-    // Create a simple beep sound
-    function createBeepSound(audioCtx, frequency, duration) {
-      return function() {
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        
-        oscillator.type = 'sine';
-        oscillator.frequency.value = frequency;
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        
-        // Add fade in/out to avoid clicks
-        const now = audioCtx.currentTime;
-        gainNode.gain.setValueAtTime(0, now);
-        gainNode.gain.linearRampToValueAtTime(0.2, now + 0.01);
-        gainNode.gain.linearRampToValueAtTime(0, now + duration);
-        
-        oscillator.start();
-        oscillator.stop(now + duration + 0.01);
+    // Wait for the Supabase script to load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Supabase configuration
+      const SUPABASE_URL = 'https://qycndlxjcstluyktdviq.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5Y25kbHhqY3N0bHV5a3RkdmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3NjM1MTgsImV4cCI6MjA1NjMzOTUxOH0.1AlGbEu7_RsKo74YOTVco1VHNFACrQ4JMk6mSDrLl18';
+
+      // Initialize Supabase client
+      const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // Game configuration
+      const config = {
+        difficulty: 'easy', // 'easy', 'medium', 'hard'
+        soundEnabled: true,
+        soundsInitialized: false,
+        timeElapsed: 0,
+        timerInterval: null,
+        currentGameScore: null
       };
-    }
-    
-    // Create a victory fanfare sound
-    function createFanfareSound(audioCtx) {
-      return function() {
-        const notes = [
-          { freq: 440, duration: 0.1 }, // A4
-          { freq: 554, duration: 0.1 }, // C#5
-          { freq: 659, duration: 0.1 }, // E5
-          { freq: 880, duration: 0.3 }  // A5
-        ];
+      
+      // DOM Elements for Leaderboard
+      const leaderboardModal = document.getElementById('leaderboard-modal');
+      const leaderboardBody = document.getElementById('leaderboard-body');
+      const submitScoreForm = document.getElementById('submit-score-form');
+      const playerNameInput = document.getElementById('player-name');
+      const submitScoreBtn = document.getElementById('submit-score');
+      const showLeaderboardBtn = document.getElementById('show-leaderboard');
+
+      // Show Leaderboard Event Listener
+      showLeaderboardBtn.addEventListener('click', () => {
+        fetchLeaderboard(config.difficulty);
+      });
+
+      // Close Leaderboard when clicking outside
+      leaderboardModal.addEventListener('click', (e) => {
+        if (e.target === leaderboardModal) {
+          leaderboardModal.style.display = 'none';
+        }
+      });
+
+      // Fetch Leaderboard from Supabase
+      async function fetchLeaderboard(difficulty) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('pexeso_leaderboard')
+            .select('*')
+            .eq('difficulty', difficulty)
+            .order('time', { ascending: true })
+            .limit(7);
+
+          if (error) throw error;
+
+          // Clear previous leaderboard
+          leaderboardBody.innerHTML = '';
+
+          // Populate leaderboard
+          data.forEach((entry, index) => {
+            const row = leaderboardBody.insertRow();
+            row.insertCell(0).textContent = index + 1;
+            row.insertCell(1).textContent = entry.name;
+            row.insertCell(2).textContent = `${entry.time}s`;
+            row.insertCell(3).textContent = entry.difficulty;
+          });
+
+          // Update leaderboard title
+          document.getElementById('leaderboard-title').textContent = `${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Mode Leaderboard`;
+
+          // Hide score submission form by default when showing leaderboard
+          submitScoreForm.style.display = 'none';
+
+          // Show modal
+          leaderboardModal.style.display = 'flex';
+        } catch (error) {
+          console.error('Error fetching leaderboard:', error);
+          alert('Failed to fetch leaderboard');
+        }
+      }
+
+      // Submit Score to Supabase
+      submitScoreBtn.addEventListener('click', async () => {
+        const playerName = playerNameInput.value.trim();
         
-        notes.forEach((note, index) => {
+        if (!playerName) {
+          alert('Please enter a name');
+          playerNameInput.focus();
+          return;
+        }
+
+        try {
+          const { error } = await supabaseClient
+            .from('pexeso_leaderboard')
+            .insert([{
+              name: playerName,
+              time: config.currentGameScore.time,
+              difficulty: config.currentGameScore.difficulty
+            }]);
+
+          if (error) throw error;
+
+          // Hide score submission form
+          submitScoreForm.style.display = 'none';
+          
+          // Automatically show leaderboard for the current game's difficulty
+          await fetchLeaderboard(config.currentGameScore.difficulty);
+        } catch (error) {
+          console.error('Error submitting score:', error);
+          alert('Failed to submit score');
+        }
+      });
+
+      // Modify the game end logic to show score submission
+      function handleGameEnd() {
+        // Store current game score
+        config.currentGameScore = {
+          time: config.timeElapsed,
+          difficulty: config.difficulty
+        };
+
+        // Show win message
+        winMessage.style.display = 'block';
+        playSound('win');
+        clearInterval(config.timerInterval);
+
+        // Clear previous leaderboard entries
+        leaderboardBody.innerHTML = '';
+
+        // Update leaderboard title
+        document.getElementById('leaderboard-title').textContent = 'Submit Your Score';
+
+        // Show leaderboard modal
+        leaderboardModal.style.display = 'flex';
+
+        // Show score submission form
+        submitScoreForm.style.display = 'flex';
+        playerNameInput.value = ''; // Clear any previous input
+        playerNameInput.focus(); // Automatically focus on name input
+      }
+
+      // Different emoji sets for variety
+      const emojiSets = {
+        animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🦁', '🐯', '🦄'],
+        food: ['🍎', '🍌', '🍓', '🍕', '🍦', '🍩', '🍪', '🍫', '🍭', '🍔', '🥨', '🧁'],
+        faces: ['😀', '😎', '🥳', '😍', '🤩', '😊', '🤔', '🤗', '😴', '🥺', '😂', '😋']
+      };
+      
+      // Sound effects using simple beep sounds generated with Web Audio API
+      const sounds = {};
+      
+      // Initialize sounds using Web Audio API
+      function initSounds() {
+        try {
+          // Create audio context
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          const audioCtx = new AudioContext();
+          
+          // Create different sounds
+          sounds.flip = createBeepSound(audioCtx, 220, 0.1); // A3 note, short
+          sounds.match = createBeepSound(audioCtx, 440, 0.2); // A4 note, medium
+          sounds.wrong = createBeepSound(audioCtx, 165, 0.2); // E3 note, medium
+          sounds.win = createFanfareSound(audioCtx); // Victory fanfare
+          
+          // Test sound
+          playSound('flip');
+          
+          // Update UI
+          config.soundsInitialized = true;
+          document.getElementById('sound-init').style.display = 'none';
+          console.log('Sounds initialized successfully');
+        } catch (error) {
+          console.error('Error initializing sounds:', error);
+          document.getElementById('sound-init').textContent = 'Sound not supported in your browser';
+        }
+      }
+      
+      // Create a simple beep sound
+      function createBeepSound(audioCtx, frequency, duration) {
+        return function() {
           const oscillator = audioCtx.createOscillator();
           const gainNode = audioCtx.createGain();
           
-          oscillator.type = 'square';
-          oscillator.frequency.value = note.freq;
+          oscillator.type = 'sine';
+          oscillator.frequency.value = frequency;
           oscillator.connect(gainNode);
           gainNode.connect(audioCtx.destination);
           
+          // Add fade in/out to avoid clicks
           const now = audioCtx.currentTime;
-          const startTime = now + index * 0.15;
+          gainNode.gain.setValueAtTime(0, now);
+          gainNode.gain.linearRampToValueAtTime(0.2, now + 0.01);
+          gainNode.gain.linearRampToValueAtTime(0, now + duration);
           
-          gainNode.gain.setValueAtTime(0, startTime);
-          gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.01);
-          gainNode.gain.linearRampToValueAtTime(0, startTime + note.duration);
-          
-          oscillator.start(startTime);
-          oscillator.stop(startTime + note.duration + 0.01);
-        });
-      };
-    }
-    
-    // Game state variables
-    let flippedCards = [];
-    let isChecking = false;
-    let matchesFound = 0;
-    let currentEmojiSet = emojiSets.animals;
-    let pairsToMatch = 8;
-    
-    // DOM elements
-    const gameBoard = document.getElementById('game-board');
-    const scoreDisplay = document.getElementById('score-display');
-    const timerDisplay = document.getElementById('timer');
-    const winMessage = document.getElementById('win-message');
-    const newGameBtn = document.getElementById('new-game');
-    const difficultyBtn = document.getElementById('difficulty');
-    const soundToggleBtn = document.getElementById('sound-toggle');
-    const soundInitBtn = document.getElementById('sound-init');
-    
-    // Add sound initialization event
-    soundInitBtn.addEventListener('click', initSounds);
-    
-    // Initialize the game
-    initGame();
-    
-    // Set up event listeners for buttons
-    newGameBtn.addEventListener('click', initGame);
-    difficultyBtn.addEventListener('click', toggleDifficulty);
-    soundToggleBtn.addEventListener('click', toggleSound);
-    
-    // Function to initialize the game
-    function initGame() {
-      // Clear previous game state
-      gameBoard.innerHTML = '';
-      flippedCards = [];
-      isChecking = false;
-      matchesFound = 0;
-      winMessage.style.display = 'none';
+          oscillator.start();
+          oscillator.stop(now + duration + 0.01);
+        };
+      }
       
-      // Reset and start timer
-      clearInterval(config.timerInterval);
-      config.timeElapsed = 0;
-      updateTimerDisplay();
-      config.timerInterval = setInterval(() => {
-        config.timeElapsed++;
+      // Create a victory fanfare sound
+      function createFanfareSound(audioCtx) {
+        return function() {
+          const notes = [
+            { freq: 440, duration: 0.1 }, // A4
+            { freq: 554, duration: 0.1 }, // C#5
+            { freq: 659, duration: 0.1 }, // E5
+            { freq: 880, duration: 0.3 }  // A5
+          ];
+          
+          notes.forEach((note, index) => {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'square';
+            oscillator.frequency.value = note.freq;
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            const startTime = now + index * 0.15;
+            
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.01);
+            gainNode.gain.linearRampToValueAtTime(0, startTime + note.duration);
+            
+            oscillator.start(startTime);
+            oscillator.stop(startTime + note.duration + 0.01);
+          });
+        };
+      }
+      
+      // Game state variables
+      let flippedCards = [];
+      let isChecking = false;
+      let matchesFound = 0;
+      let currentEmojiSet = emojiSets.animals;
+      let pairsToMatch = 8;
+      
+      // DOM elements
+      const gameBoard = document.getElementById('game-board');
+      const scoreDisplay = document.getElementById('score-display');
+      const timerDisplay = document.getElementById('timer');
+      const winMessage = document.getElementById('win-message');
+      const newGameBtn = document.getElementById('new-game');
+      const difficultyBtn = document.getElementById('difficulty');
+      const soundToggleBtn = document.getElementById('sound-toggle');
+      const soundInitBtn = document.getElementById('sound-init');
+      
+      // Add sound initialization event
+      soundInitBtn.addEventListener('click', initSounds);
+      
+      // Initialize the game
+      initGame();
+      
+      // Set up event listeners for buttons
+      newGameBtn.addEventListener('click', initGame);
+      difficultyBtn.addEventListener('click', toggleDifficulty);
+      soundToggleBtn.addEventListener('click', toggleSound);
+      
+      // Function to initialize the game
+      function initGame() {
+        // Clear previous game state
+        gameBoard.innerHTML = '';
+        flippedCards = [];
+        isChecking = false;
+        matchesFound = 0;
+        winMessage.style.display = 'none';
+        
+        // Reset and start timer
+        clearInterval(config.timerInterval);
+        config.timeElapsed = 0;
         updateTimerDisplay();
-      }, 1000);
-      
-      // Update score display
-      updateScoreDisplay();
-      
-      // Randomly select emoji set
-      const emojiSetKeys = Object.keys(emojiSets);
-      const randomSetKey = emojiSetKeys[Math.floor(Math.random() * emojiSetKeys.length)];
-      currentEmojiSet = emojiSets[randomSetKey];
-      
-      // Set number of pairs based on difficulty
-      if (config.difficulty === 'easy') {
-        pairsToMatch = 6;
-        gameBoard.style.gridTemplateColumns = 'repeat(3, 1fr)';
-      } else if (config.difficulty === 'medium') {
-        pairsToMatch = 8;
-        gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
-      } else {
-        pairsToMatch = 10;
-        gameBoard.style.gridTemplateColumns = 'repeat(5, 1fr)';
+        config.timerInterval = setInterval(() => {
+          config.timeElapsed++;
+          updateTimerDisplay();
+        }, 1000);
+        
+        // Update score display
+        updateScoreDisplay();
+        
+        // Randomly select emoji set
+        const emojiSetKeys = Object.keys(emojiSets);
+        const randomSetKey = emojiSetKeys[Math.floor(Math.random() * emojiSetKeys.length)];
+        currentEmojiSet = emojiSets[randomSetKey];
+        
+        // Set number of pairs based on difficulty
+        if (config.difficulty === 'easy') {
+          pairsToMatch = 6;
+          gameBoard.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        } else if (config.difficulty === 'medium') {
+          pairsToMatch = 8;
+          gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        } else {
+          pairsToMatch = 10;
+          gameBoard.style.gridTemplateColumns = 'repeat(5, 1fr)';
+        }
+        
+        // Get emojis for this game
+        const gameEmojis = currentEmojiSet.slice(0, pairsToMatch);
+        const allEmojis = [...gameEmojis, ...gameEmojis];
+    const shuffledEmojis = shuffle(allEmojis);
+
+    // Create and add cards to the game board
+    shuffledEmojis.forEach(emoji => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.textContent = emoji;
+      card.addEventListener('click', handleCardClick);
+      gameBoard.appendChild(card);
+    });
       }
       
-      // Get emojis for this game
-      const gameEmojis = currentEmojiSet.slice(0, pairsToMatch);
-      const allEmojis = [...gameEmojis, ...gameEmojis];
-      const shuffledEmojis = shuffle(allEmojis);
-      
-      // Create and add cards to the game board
-      shuffledEmojis.forEach(emoji => {
-        const card = document.createElement('div');
-        card.classList.add('card');
-        card.textContent = emoji;
-        card.addEventListener('click', handleCardClick);
-        gameBoard.appendChild(card);
-      });
-    }
-    
-    // Shuffle function to randomize card positions
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+      // Shuffle function to randomize card positions
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
       }
-      return array;
-    }
-    
+
     // Handle card clicks
     function handleCardClick(event) {
       const card = event.target;
-      
+        
       // Ignore clicks if checking or card is already flipped
-      if (isChecking || card.classList.contains('flipped') || 
-          card.classList.contains('matched')) {
+        if (isChecking || card.classList.contains('flipped') || 
+            card.classList.contains('matched')) {
         return;
       }
-      
-      // Play flip sound
-      playSound('flip');
-      
-      // Flip the card
+        
+        // Play flip sound
+        playSound('flip');
+        
+        // Flip the card
       card.classList.add('flipped');
       flippedCards.push(card);
-      
+
       // Check for a match when two cards are flipped
       if (flippedCards.length === 2) {
         checkForMatch();
       }
     }
-    
+
     // Check if the two flipped cards match
     function checkForMatch() {
       const [card1, card2] = flippedCards;
-      
+        
       if (card1.textContent === card2.textContent) {
         // Match found
-        setTimeout(() => {
-          card1.classList.add('matched');
-          card2.classList.add('matched');
-          card1.classList.add('celebrate');
-          card2.classList.add('celebrate');
-          
-          // Remove the animation class after it completes
           setTimeout(() => {
-            card1.classList.remove('celebrate');
-            card2.classList.remove('celebrate');
-          }, 500);
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            card1.classList.add('celebrate');
+            card2.classList.add('celebrate');
+            
+            // Remove the animation class after it completes
+            setTimeout(() => {
+              card1.classList.remove('celebrate');
+              card2.classList.remove('celebrate');
+            }, 500);
+            
+            playSound('match');
+          }, 300);
           
-          playSound('match');
-        }, 300);
-        
         matchesFound++;
-        updateScoreDisplay();
+          updateScoreDisplay();
         flippedCards = [];
-        
+          
         // Check if all pairs are found
-        if (matchesFound === pairsToMatch) {
-          setTimeout(() => {
-            winMessage.style.display = 'block';
-            playSound('win');
-            clearInterval(config.timerInterval);
-          }, 500);
+          if (matchesFound === pairsToMatch) {
+            setTimeout(() => {
+              handleGameEnd();
+            }, 500);
         }
       } else {
         // No match, flip back after a delay
         isChecking = true;
         setTimeout(() => {
-          playSound('wrong');
+            playSound('wrong');
           card1.classList.remove('flipped');
           card2.classList.remove('flipped');
           flippedCards = [];
@@ -436,67 +634,68 @@
         }, 1000);
       }
     }
-    
-    // Toggle difficulty level
-    function toggleDifficulty() {
-      if (config.difficulty === 'easy') {
-        config.difficulty = 'medium';
-        difficultyBtn.textContent = 'Medium Mode';
-      } else if (config.difficulty === 'medium') {
-        config.difficulty = 'hard';
-        difficultyBtn.textContent = 'Hard Mode';
-      } else {
-        config.difficulty = 'easy';
-        difficultyBtn.textContent = 'Easy Mode';
+      
+      // Toggle difficulty level
+      function toggleDifficulty() {
+        if (config.difficulty === 'easy') {
+          config.difficulty = 'medium';
+          difficultyBtn.textContent = 'Medium Mode';
+        } else if (config.difficulty === 'medium') {
+          config.difficulty = 'hard';
+          difficultyBtn.textContent = 'Hard Mode';
+        } else {
+          config.difficulty = 'easy';
+          difficultyBtn.textContent = 'Easy Mode';
+        }
+        
+        initGame();
       }
       
-      initGame();
-    }
-    
-    // Toggle sound on/off
-    function toggleSound() {
-      config.soundEnabled = !config.soundEnabled;
-      soundToggleBtn.textContent = `Sound: ${config.soundEnabled ? 'On' : 'Off'}`;
-      
-      // Initialize sounds if they haven't been yet
-      if (config.soundEnabled && !config.soundsInitialized) {
-        initSounds();
-      }
-    }
-    
-    // Play sound if enabled
-    function playSound(soundName) {
-      if (config.soundEnabled && config.soundsInitialized && sounds[soundName]) {
-        try {
-          sounds[soundName]();
-        } catch (e) {
-          console.log('Error playing sound:', e);
+      // Toggle sound on/off
+      function toggleSound() {
+        config.soundEnabled = !config.soundEnabled;
+        soundToggleBtn.textContent = `Sound: ${config.soundEnabled ? 'On' : 'Off'}`;
+        
+        // Initialize sounds if they haven't been yet
+        if (config.soundEnabled && !config.soundsInitialized) {
+          initSounds();
         }
       }
-    }
-    
-    // Update score display
-    function updateScoreDisplay() {
-      scoreDisplay.textContent = `Matches: ${matchesFound} / ${pairsToMatch}`;
-    }
-    
-    // Update timer display
-    function updateTimerDisplay() {
-      timerDisplay.textContent = `Time: ${config.timeElapsed}s`;
-    }
-    
-    // Add keyboard controls for accessibility
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'r' || event.key === 'R') {
-        // R key for restart
-        initGame();
-      } else if (event.key === 'd' || event.key === 'D') {
-        // D key for difficulty
-        toggleDifficulty();
-      } else if (event.key === 's' || event.key === 'S') {
-        // S key for sound toggle
-        toggleSound();
+      
+      // Play sound if enabled
+      function playSound(soundName) {
+        if (config.soundEnabled && config.soundsInitialized && sounds[soundName]) {
+          try {
+            sounds[soundName]();
+          } catch (e) {
+            console.log('Error playing sound:', e);
+          }
+        }
       }
+      
+      // Update score display
+      function updateScoreDisplay() {
+        scoreDisplay.textContent = `Matches: ${matchesFound} / ${pairsToMatch}`;
+      }
+      
+      // Update timer display
+      function updateTimerDisplay() {
+        timerDisplay.textContent = `Time: ${config.timeElapsed}s`;
+      }
+      
+      // Add keyboard controls for accessibility
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'r' || event.key === 'R') {
+          // R key for restart
+          initGame();
+        } else if (event.key === 'd' || event.key === 'D') {
+          // D key for difficulty
+          toggleDifficulty();
+        } else if (event.key === 's' || event.key === 'S') {
+          // S key for sound toggle
+          toggleSound();
+        }
+      });
     });
   </script>
 </body>

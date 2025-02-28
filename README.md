@@ -1,58 +1,62 @@
-# duskyAI Pexeso
+# 🎮 duskyAI Pexeso - Memory Matching Game
 
-A fun memory matching game for kids aged 5-6 years old, designed to be playable on both desktop and mobile devices.
+A fun, interactive memory matching game for children aged 5-6, built with HTML, CSS, and JavaScript.
 
-![duskyAI Pexeso Game](screenshot.png)
+## 🌟 Features
 
-## Features
+- 3 Difficulty Levels (Easy, Medium, Hard)
+- Emoji-based card matching
+- Sound effects
+- Global Leaderboard powered by Supabase
+- Responsive design
+- Accessibility features
 
-- Simple and engaging memory matching game
-- Child-friendly design with colorful interface
-- Three difficulty levels: Easy, Medium, and Hard
-- Multiple emoji sets (animals, food, faces) that randomly change each game
-- Score tracking and timer
-- Sound effects for card flips, matches, and winning
-- Responsive design that works well on mobile devices
-- Keyboard controls for accessibility
+## 🎲 How to Play
 
-## How to Play
+1. Click on cards to reveal emojis
+2. Match pairs of identical emojis
+3. Complete the game as quickly as possible
+4. Submit your score to the leaderboard
 
-1. Click on a card to flip it and reveal the emoji
-2. Try to find the matching pair by flipping another card
-3. If the cards match, they stay flipped
-4. If they don't match, they flip back over
-5. Find all matching pairs to win the game
+### Keyboard Shortcuts
+- `R`: Restart Game
+- `D`: Change Difficulty
+- `S`: Toggle Sound
 
-## Controls
+## 🚀 Technologies Used
 
-- **Mouse/Touch**: Click or tap on cards to flip them
-- **Keyboard**:
-  - `R` key: Restart the game
-  - `D` key: Change difficulty
-  - `S` key: Toggle sound on/off
+- HTML5
+- CSS3
+- JavaScript
+- Supabase (Leaderboard)
+- Web Audio API
 
-## Technical Details
+## 🔧 Setup
 
-- Built with vanilla HTML, CSS, and JavaScript
-- No external libraries or dependencies required
-- Uses Web Audio API for sound generation
-- Fully responsive design for all screen sizes
+1. Clone the repository
+2. Open `index.html` in a modern web browser
+3. Enjoy the game!
 
-## Installation
+## 📦 Dependencies
 
-No installation required! Simply open the `index.html` file in any modern web browser.
+- Supabase JavaScript Library
+- Google Fonts (Comic Neue)
 
-```
-git clone https://github.com/yourusername/duskyai-pexeso.git
-cd duskyai-pexeso
-```
+## 🌈 Emoji Sets
 
-Then open `index.html` in your browser.
+The game features three emoji sets:
+- Animals
+- Food
+- Faces
 
-## License
+## 📝 License
 
-MIT License
+[Insert License Type Here]
 
-## Credits
+## 👥 Contributors
 
-Created by duskyAI 
+- [Your Name]
+
+## 🎨 Screenshots
+
+[Add game screenshots here] 
