@@ -55,10 +55,23 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       cursor: pointer;
-      transition: background-color 0.3s ease-out, color 0.3s ease-out, border-color 0.3s ease-out;
+      transition: transform 0.3s, background-color 0.3s;
       border: 3px solid #ff9a3c;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+    }
+    
+    .card::before {
+      content: attr(data-emoji);
+      display: none;
+    }
+    
+    .card.flipped::before {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
     }
     
     .card:active {
@@ -68,6 +81,7 @@
     .card.flipped {
       background-color: #fff;
       color: black;
+      transform: rotateY(180deg);
     }
     
     .card.matched {
@@ -546,16 +560,16 @@
         // Get emojis for this game
         const gameEmojis = currentEmojiSet.slice(0, pairsToMatch);
         const allEmojis = [...gameEmojis, ...gameEmojis];
-    const shuffledEmojis = shuffle(allEmojis);
+        const shuffledEmojis = shuffle(allEmojis);
 
-    // Create and add cards to the game board
-    shuffledEmojis.forEach(emoji => {
-      const card = document.createElement('div');
-      card.classList.add('card');
-      card.textContent = emoji;
-      card.addEventListener('click', handleCardClick);
-      gameBoard.appendChild(card);
-    });
+        // Create and add cards to the game board
+        shuffledEmojis.forEach(emoji => {
+          const card = document.createElement('div');
+          card.classList.add('card');
+          card.setAttribute('data-emoji', emoji);
+          card.addEventListener('click', handleCardClick);
+          gameBoard.appendChild(card);
+        });
       }
       
       // Shuffle function to randomize card positions
@@ -594,7 +608,7 @@
     function checkForMatch() {
       const [card1, card2] = flippedCards;
         
-      if (card1.textContent === card2.textContent) {
+      if (card1.getAttribute('data-emoji') === card2.getAttribute('data-emoji')) {
         // Match found
           setTimeout(() => {
             card1.classList.add('matched');
