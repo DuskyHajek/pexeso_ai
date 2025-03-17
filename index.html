@@ -222,8 +222,9 @@
 </head>
 <body>
   <div id="game-container">
-    <h1>duskyAI Pexeso</h1>
-  <p>Find the matching pairs!</p>
+    <h1>
+      <img src="logo_pexeso.png" alt="Pexeso Logo" style="max-width: 200px; height: auto; margin-bottom: 0;">
+    </h1>
     
     <div id="controls">
       <button id="new-game">New Game</button>
@@ -236,7 +237,7 @@
     <div id="timer">Time: 0s</div>
     <div id="sound-init">Click here to enable sounds</div>
     
-  <div id="game-board"></div>
+    <div id="game-board"></div>
     <div id="win-message">You win! 🎉</div>
   </div>
 
@@ -261,6 +262,21 @@
         <button id="submit-score">Submit Score</button>
       </div>
     </div>
+  </div>
+
+  <div id="attribution" style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 5px;
+    font-family: 'Comic Neue', cursive;
+    font-size: 0.8rem;
+    color: #5f27cd;
+    background-color: rgba(230, 247, 255, 0.8);
+  ">
+    Made with ❤️ by duskyAI
   </div>
 
   <script>
