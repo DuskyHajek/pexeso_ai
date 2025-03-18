@@ -265,20 +265,17 @@
     </div>
   </div>
 
-  <div id="attribution" style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    padding: 5px;
-    font-family: 'Comic Neue', cursive;
-    font-size: 0.8rem;
-    color: #5f27cd;
-    background-color: rgba(230, 247, 255, 0.8);
-  ">
-    Made with ❤️ by duskyAI
-  </div>
+  <footer style="margin-top: 20px; padding: 10px; background-color: rgba(255,255,255,0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+    <span style="font-family: 'Comic Neue', cursive; color: #5f27cd;">Made with 💜 by</span>
+    <a href="https://www.duskyai.com" target="_blank" style="display: inline-block;">
+      <img src="logo-min.png" alt="duskyAI Logo" style="max-width: 100px; height: auto; transition: transform 0.3s;">
+    </a>
+    <style>
+      footer a:hover img {
+        transform: scale(1.1);
+      }
+    </style>
+  </footer>
 
   <script>
     // Wait for the Supabase script to load
