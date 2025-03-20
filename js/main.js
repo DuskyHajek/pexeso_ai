@@ -97,34 +97,76 @@ function initShareButton() {
   const shareButton = document.getElementById('share-button');
   const gameUrl = window.location.href;
 
-  // Create a hidden copied message element
+  // Create a better copied message element
   const copiedMessage = document.createElement('div');
   copiedMessage.id = 'copied-message';
   copiedMessage.textContent = 'Link copied!';
   document.body.appendChild(copiedMessage);
 
+  // Show copied/shared success message
+  function showSuccessMessage(message = 'Link copied!') {
+    copiedMessage.textContent = message;
+    copiedMessage.style.opacity = '1';
+    setTimeout(() => {
+      copiedMessage.style.opacity = '0';
+    }, 2000);
+  }
+
+  // Add a small animation/feedback when the button is clicked
+  function buttonFeedback() {
+    shareButton.classList.add('active');
+    setTimeout(() => shareButton.classList.remove('active'), 200);
+  }
+
   shareButton.addEventListener('click', async () => {
     try {
-      // Try to use the Web Share API if available
+      buttonFeedback();
+      
+      // Try to use the Web Share API first (better for mobile)
       if (navigator.share) {
         await navigator.share({
           title: 'Play Pexeso - Memory Matching Game',
           text: 'Check out this fun memory game!',
           url: gameUrl
         });
-      } else {
-        // Fallback to clipboard copy
-        await navigator.clipboard.writeText(gameUrl);
-        
-        // Show copied message
-        copiedMessage.style.opacity = '1';
-        setTimeout(() => {
-          copiedMessage.style.opacity = '0';
-        }, 2000);
+        showSuccessMessage('Shared successfully!');
+        return;
       }
+      
+      // Fallback to clipboard
+      await navigator.clipboard.writeText(gameUrl);
+      showSuccessMessage('Link copied!');
     } catch (err) {
       console.error('Error sharing:', err);
-      alert('Unable to share. Please copy the link manually.');
+      
+      // Try clipboard API as a last resort
+      try {
+        await navigator.clipboard.writeText(gameUrl);
+        showSuccessMessage('Link copied!');
+      } catch (clipboardErr) {
+        console.error('Clipboard error:', clipboardErr);
+        
+        // Ultimate fallback - create a temporary input element
+        const tempInput = document.createElement('input');
+        tempInput.value = gameUrl;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        
+        let copySuccess = false;
+        try {
+          copySuccess = document.execCommand('copy');
+        } catch (e) {
+          console.error('execCommand error:', e);
+        }
+        
+        document.body.removeChild(tempInput);
+        
+        if (copySuccess) {
+          showSuccessMessage('Link copied!');
+        } else {
+          alert('Unable to share. Please copy this link manually:\n' + gameUrl);
+        }
+      }
     }
   });
 } 
