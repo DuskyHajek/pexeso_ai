@@ -1,0 +1,310 @@
+:root {
+  --card-size: 80px;
+}
+
+body {
+  text-align: center;
+  background-color: #e6f7ff;
+  font-family: 'Comic Neue', cursive;
+  margin: 0;
+  padding: 5px;
+  background-image: linear-gradient(to bottom, #e6f7ff, #b3e0ff);
+  min-height: 100vh;
+}
+
+h1 {
+  color: #ff6b6b;
+  font-size: 2.5rem;
+  margin-bottom: 5px;
+  margin-top: 5px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+p {
+  color: #5f27cd;
+  font-size: 1.2rem;
+  margin-top: 0;
+}
+
+#game-container {
+  max-width: min(95vw, 95vh, 500px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 90vh;
+}
+
+#game-board {
+  display: grid;
+  gap: min(2vw, 10px);
+  width: 100%;
+  margin: 15px auto;
+  justify-content: center;
+  align-items: center;
+}
+
+.card {
+  width: var(--card-size);
+  height: var(--card-size);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: clamp(1.5rem, 5vw, 2.8rem);
+  background-color: #ffd166;
+  color: transparent;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: transform 0.3s, background-color 0.3s;
+  border: 3px solid #ff9a3c;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  max-width: 100%;
+}
+
+.card::before {
+  content: attr(data-emoji);
+  display: none;
+}
+
+.card.flipped::before {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.card:active {
+  transform: scale(0.95);
+}
+
+.card.flipped {
+  background-color: #fff;
+  color: black;
+  transform: rotateY(180deg);
+}
+
+.card.matched {
+  background-color: #a0e7a0;
+  border-color: #4caf50;
+}
+
+#win-message {
+  font-size: 2em;
+  color: #4caf50;
+  margin-top: 20px;
+  display: none;
+  animation: bounce 0.5s infinite alternate;
+}
+
+#controls, #leaderboard-controls {
+  margin: 15px auto;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  background-color: #ff9a3c;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 15px;
+  font-family: 'Comic Neue', cursive;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+#score-display {
+  font-size: 1.2rem;
+  color: #5f27cd;
+  margin: 10px 0;
+}
+
+#timer {
+  font-size: 1.2rem;
+  color: #ff6b6b;
+  margin: 5px 0;
+}
+
+#sound-init {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #666;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Leaderboard styles */
+#leaderboard-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+#leaderboard-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  max-height: 80%;
+  overflow-y: auto;
+}
+
+#leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#leaderboard-table th, #leaderboard-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+#submit-score-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+#submit-score-form input, #submit-score-form button {
+  padding: 10px;
+  font-family: 'Comic Neue', cursive;
+}
+
+@keyframes bounce {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+@keyframes celebrate {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.celebrate {
+  animation: celebrate 0.5s;
+}
+
+/* Media queries for better mobile experience */
+@media (max-width: 400px) {
+  h1 {
+    font-size: 1.8rem;
+    margin-top: 0;
+    margin-bottom: 2px;
+  }
+  
+  h1 img {
+    max-width: 150px;
+  }
+  
+  #controls {
+    margin: 5px auto;
+  }
+  
+  button {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+  
+  #game-board {
+    gap: 6px;
+    margin: 10px auto;
+  }
+  
+  #score-display, #timer {
+    font-size: 1rem;
+    margin: 5px 0;
+  }
+  
+  footer {
+    margin-top: 10px;
+    padding: 5px;
+  }
+  
+  footer a img {
+    max-width: 70px;
+  }
+}
+
+/* For devices with very small height */
+@media (max-height: 600px) {
+  h1 {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  
+  h1 img {
+    max-width: 120px;
+  }
+  
+  #controls {
+    margin: 5px auto;
+  }
+  
+  button {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
+  
+  #score-display, #timer {
+    font-size: 0.9rem;
+    margin: 2px 0;
+  }
+  
+  #sound-init {
+    margin-top: 2px;
+    font-size: 0.8rem;
+  }
+  
+  footer {
+    margin-top: 5px;
+    padding: 3px;
+  }
+}
+
+/* Footer styling */
+footer {
+  margin-top: 20px; 
+  padding: 10px; 
+  background-color: rgba(255,255,255,0.3); 
+  border-radius: 10px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 10px;
+}
+
+footer span {
+  font-family: 'Comic Neue', cursive; 
+  color: #5f27cd;
+}
+
+footer a:hover img {
+  transform: scale(1.1);
+}
+
+footer a img {
+  max-width: 100px; 
+  height: auto; 
+  transition: transform 0.3s;
+} 
