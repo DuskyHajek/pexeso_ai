@@ -5,11 +5,13 @@ A fun, interactive memory matching game built with HTML, CSS, and JavaScript.
 ## 🌟 Features
 
 - 3 Difficulty Levels (Easy, Medium, Hard)
-- Randomly selected emoji sets
+- Randomly selected or manually chosen emoji sets
 - Responsive design for mobile and desktop
 - Sound effects and audio toggle
 - Global Leaderboard powered by Supabase
 - Keyboard shortcuts for enhanced accessibility
+- Easy game sharing functionality
+- Theme customization
 
 ## 🎲 How to Play
 
@@ -23,6 +25,30 @@ A fun, interactive memory matching game built with HTML, CSS, and JavaScript.
 - `D`: Change Difficulty
 - `S`: Toggle Sound
 
+## 🚀 Game Features in Detail
+
+### Emoji Sets
+Choose from multiple emoji sets or let the game randomly select:
+- 🐶 Animals
+- 🍎 Food
+- 😀 Faces
+- 🎲 Random (default)
+
+### Difficulty Modes
+- **Easy Mode**: 6 pairs of cards (3x4 grid)
+- **Medium Mode**: 8 pairs of cards (4x4 grid)
+- **Hard Mode**: 10 pairs of cards (4x5 grid)
+
+### Sharing
+- Share the game link with friends easily
+- Web Share API support for mobile devices
+- Clipboard copy for desktop browsers
+
+### Themes
+- Classic theme with vibrant colors
+- Dark mode support
+- Responsive design for various screen sizes
+
 ## 🚀 Technologies Used
 
 - HTML5
@@ -30,6 +56,7 @@ A fun, interactive memory matching game built with HTML, CSS, and JavaScript.
 - JavaScript (ES6+)
 - Supabase (Leaderboard)
 - Web Audio API
+- Web Share API
 
 ## 🔧 Setup and Installation
 
@@ -50,10 +77,11 @@ A fun, interactive memory matching game built with HTML, CSS, and JavaScript.
 
 ## 🌈 Emoji Sets
 
-The game features three unique emoji sets:
+The game features multiple emoji sets:
 - Animals 🐶🐱🐭
 - Food 🍎🍌🍕
 - Faces 😀😎🤩
+- Random selection option
 
 ## 🎨 Game Modes
 

@@ -1,4 +1,4 @@
-import { config, emojiSets } from './config.js';
+import { config, emojiSets, getEmojiSetKeys } from './config.js';
 import { playSound } from './audio.js';
 import { handleGameEnd } from './leaderboard.js';
 
@@ -6,7 +6,6 @@ import { handleGameEnd } from './leaderboard.js';
 let flippedCards = [];
 let isChecking = false;
 let matchesFound = 0;
-let currentEmojiSet = emojiSets.animals;
 let pairsToMatch = 8;
 
 // DOM elements
@@ -46,10 +45,24 @@ function initGame() {
   // Update score display
   updateScoreDisplay();
   
-  // Randomly select emoji set
-  const emojiSetKeys = Object.keys(emojiSets);
-  const randomSetKey = emojiSetKeys[Math.floor(Math.random() * emojiSetKeys.length)];
-  currentEmojiSet = emojiSets[randomSetKey];
+  // Determine emoji set
+  let currentSet;
+  if (config.currentEmojiSet === 'random' || !config.currentEmojiSet) {
+    // Random set if not specified or random is selected
+    const emojiSetKeys = Object.keys(emojiSets);
+    const randomSetKey = emojiSetKeys[Math.floor(Math.random() * emojiSetKeys.length)];
+    currentSet = emojiSets[randomSetKey];
+    config.currentEmojiSet = randomSetKey;
+  } else if (emojiSets[config.currentEmojiSet]) {
+    // Use specified emoji set
+    currentSet = emojiSets[config.currentEmojiSet];
+  } else {
+    // Fallback to random if something goes wrong
+    const emojiSetKeys = Object.keys(emojiSets);
+    const randomSetKey = emojiSetKeys[Math.floor(Math.random() * emojiSetKeys.length)];
+    currentSet = emojiSets[randomSetKey];
+    config.currentEmojiSet = randomSetKey;
+  }
   
   // Set number of pairs based on difficulty and device
   const isMobile = window.innerWidth < 768;
@@ -60,27 +73,24 @@ function initGame() {
   } else if (config.difficulty === 'medium') {
     pairsToMatch = 8;
   } else {
-    // For hard mode on small portrait mobile, limit to 8 pairs
-    if (isMobile && !isLandscape && window.innerWidth < 400) {
-      pairsToMatch = 8;
-    } else {
-      pairsToMatch = 10;
-    }
+    // Always use 10 pairs for hard mode, regardless of device
+    pairsToMatch = 10;
   }
   
   // Get emojis for this game
-  const gameEmojis = currentEmojiSet.slice(0, pairsToMatch);
-  const allEmojis = [...gameEmojis, ...gameEmojis];
-  const shuffledEmojis = shuffle(allEmojis);
+  const gameItems = currentSet.slice(0, pairsToMatch);
+  const allItems = [...gameItems, ...gameItems];
+  const shuffledItems = shuffle(allItems);
 
   // Set up grid layout based on device orientation and difficulty
   setGridLayout();
 
   // Create and add cards to the game board
-  shuffledEmojis.forEach(emoji => {
+  shuffledItems.forEach(item => {
     const card = document.createElement('div');
     card.classList.add('card');
-    card.setAttribute('data-emoji', emoji);
+    card.setAttribute('data-emoji', item);
+    
     card.addEventListener('click', handleCardClick);
     gameBoard.appendChild(card);
   });
@@ -212,7 +222,7 @@ function handleCardClick(event) {
 // Check if the two flipped cards match
 function checkForMatch() {
   const [card1, card2] = flippedCards;
-    
+  
   if (card1.getAttribute('data-emoji') === card2.getAttribute('data-emoji')) {
     // Match found
     setTimeout(() => {
@@ -253,19 +263,16 @@ function checkForMatch() {
   }
 }
 
-// Toggle difficulty level
+// Toggle difficulty
 function toggleDifficulty() {
-  if (config.difficulty === 'easy') {
-    config.difficulty = 'medium';
-    difficultyBtn.textContent = 'Medium Mode';
-  } else if (config.difficulty === 'medium') {
-    config.difficulty = 'hard';
-    difficultyBtn.textContent = 'Hard Mode';
-  } else {
-    config.difficulty = 'easy';
-    difficultyBtn.textContent = 'Easy Mode';
-  }
+  const difficulties = ['easy', 'medium', 'hard'];
+  const currentIndex = difficulties.indexOf(config.difficulty);
+  const nextIndex = (currentIndex + 1) % difficulties.length;
   
+  config.difficulty = difficulties[nextIndex];
+  difficultyBtn.textContent = `${config.difficulty.charAt(0).toUpperCase() + config.difficulty.slice(1)} Mode`;
+  
+  // Restart game with new difficulty
   initGame();
 }
 
@@ -279,53 +286,38 @@ function updateTimerDisplay() {
   timerDisplay.textContent = `Time: ${config.timeElapsed}s`;
 }
 
-// Add event listeners for window resize
+// Add resize event listeners
 function addResizeListeners() {
-  // Handle both orientation change and resize events
-  window.addEventListener('orientationchange', handleScreenChange);
-  window.addEventListener('resize', handleScreenChange);
-  
-  // Handle visibility changes (when user switches tabs/apps and returns)
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  
-  // Initial layout setup
-  setGridLayout();
-}
-
-// Handle screen size or orientation changes
-function handleScreenChange() {
-  // Use debouncing to avoid too many layout calculations in a short period
-  clearTimeout(window.resizeTimer);
-  window.resizeTimer = setTimeout(() => {
-    setGridLayout();
-  }, 250);
-}
-
-// Handle visibility change (when user returns to the tab/app)
-function handleVisibilityChange() {
-  if (document.visibilityState === 'visible') {
-    // Recalculate layout when returning to the game
-    setGridLayout();
-  }
+  window.addEventListener('resize', () => {
+    // Debounce resize to prevent excessive calculations
+    clearTimeout(window.resizeTimer);
+    window.resizeTimer = setTimeout(() => {
+      setGridLayout();
+    }, 250);
+  });
 }
 
 // Setup keyboard controls
 function setupKeyboardControls() {
-  document.addEventListener('keydown', function(event) {
-    if (event.key === 'r' || event.key === 'R') {
-      // R key for restart
-      initGame();
-    } else if (event.key === 'd' || event.key === 'D') {
-      // D key for difficulty
-      toggleDifficulty();
-    } else if (event.key === 's' || event.key === 'S') {
-      // S key for sound toggle
-      import('./audio.js').then(audio => {
-        audio.toggleSound();
-      });
+  document.addEventListener('keydown', (event) => {
+    switch(event.key.toLowerCase()) {
+      case 'r':
+        initGame();
+        break;
+      case 'd':
+        toggleDifficulty();
+        break;
+      case 's':
+        document.getElementById('sound-toggle').click();
+        break;
     }
   });
 }
 
-// Export functions
-export { initDOMElements, initGame, toggleDifficulty, addResizeListeners, setupKeyboardControls, setGridLayout, handleVisibilityChange }; 
+export { 
+  initDOMElements, 
+  initGame, 
+  toggleDifficulty, 
+  addResizeListeners, 
+  setupKeyboardControls
+}; 
