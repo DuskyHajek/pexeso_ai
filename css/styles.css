@@ -188,111 +188,153 @@ button:active {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.8);
+  background-color: rgba(0,0,0,0.7);
   display: none;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(3px);
 }
 
 #leaderboard-content {
-  background-color: var(--background-color, white);
-  color: var(--text-color, black);
-  padding: 20px;
-  border-radius: 10px;
+  background: var(--background, linear-gradient(to bottom, #e6f7ff, #b3e0ff));
+  color: var(--text-color, #5f27cd);
+  padding: 25px;
+  border-radius: 15px;
   width: 90%;
   max-width: 500px;
   max-height: 80%;
   overflow-y: auto;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  border: 2px solid var(--card-border, #ddd);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+  border: 3px solid var(--card-border, #ff9a3c);
+  animation: fadeIn 0.3s ease-out;
 }
 
 #leaderboard-title {
-  color: var(--header-color, var(--text-color, black));
+  color: var(--header-color, #ff6b6b);
   text-align: center;
-  margin-bottom: 15px;
-  font-size: 1.5rem;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
   font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
 
 #leaderboard-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 #leaderboard-table th {
-  background-color: var(--card-background, #f0f0f0);
-  color: var(--text-color, black);
-  border: 1px solid var(--card-border, #ddd);
+  background-color: var(--card-background, #ffd166);
+  color: var(--text-color, #5f27cd);
+  border: 1px solid var(--card-border, #ff9a3c);
   padding: 12px;
-  text-align: left;
+  text-align: center;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 #leaderboard-table td {
-  background-color: var(--background-color, white);
-  color: var(--text-color, black);
-  border: 1px solid var(--card-border, #ddd);
-  padding: 10px;
-  text-align: left;
+  background-color: rgba(255,255,255,0.7);
+  color: var(--text-color, #5f27cd);
+  border: 1px solid var(--card-border, #ff9a3c);
+  padding: 12px;
+  text-align: center;
+  transition: all 0.3s ease;
 }
 
-#leaderboard-table tr:nth-child(even) {
-  background-color: var(--alternate-background, #f5f5f5);
+#leaderboard-table tr:nth-child(even) td {
+  background-color: rgba(255,255,255,0.5);
 }
 
-#leaderboard-table tr:hover {
-  background-color: var(--hover-background, #e0e0e0);
-  transition: background-color 0.3s ease;
+#leaderboard-table tr:hover td {
+  background-color: var(--matched-card-background, #a0e7a0);
+  transform: scale(1.01);
 }
 
-/* Ensure better contrast in dark mode */
+/* Remove hardcoded dark mode colors to use theme variables instead */
 @media (prefers-color-scheme: dark) {
   #leaderboard-content {
-    background-color: #2c2c2c;
-    color: #e0e0e0;
-    border-color: #4a4a4a;
+    background: var(--background, linear-gradient(to bottom, #2d3436, #636e72));
+    border-color: var(--card-border, #34495e);
   }
 
   #leaderboard-title {
-    color: #ff9a3c;
+    color: var(--header-color, #e74c3c);
   }
 
   #leaderboard-table th {
-    background-color: #3c3c3c;
-    color: #ff9a3c;
-    border-color: #4a4a4a;
+    background-color: var(--card-background, #2c3e50);
+    color: var(--text-color, #ecf0f1);
+    border-color: var(--card-border, #34495e);
   }
 
   #leaderboard-table td {
-    background-color: #2c2c2c;
-    color: #e0e0e0;
-    border-color: #4a4a4a;
+    background-color: rgba(44, 62, 80, 0.7);
+    color: var(--text-color, #ecf0f1);
+    border-color: var(--card-border, #34495e);
   }
 
-  #leaderboard-table tr:nth-child(even) {
-    background-color: #353535;
+  #leaderboard-table tr:nth-child(even) td {
+    background-color: rgba(44, 62, 80, 0.5);
   }
 
-  #leaderboard-table tr:hover {
-    background-color: #404040;
+  #leaderboard-table tr:hover td {
+    background-color: var(--matched-card-background, #27ae60);
   }
 }
 
 #submit-score-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 15px;
+  margin-top: 25px;
+  animation: fadeIn 0.5s ease-out;
 }
 
-#submit-score-form input, #submit-score-form button {
-  padding: 10px;
+#submit-score-form input {
+  padding: 12px 15px;
   font-family: 'Comic Neue', cursive;
+  border-radius: 8px;
+  border: 2px solid var(--card-border, #ff9a3c);
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--text-color, #5f27cd);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+#submit-score-form input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 154, 60, 0.5);
+  transform: scale(1.02);
+}
+
+#submit-score-form button {
+  padding: 12px 20px;
+  font-family: 'Comic Neue', cursive;
+  background-color: var(--card-background, #ffd166);
+  color: var(--text-color, #5f27cd);
+  border: 2px solid var(--card-border, #ff9a3c);
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#submit-score-form button:hover {
+  background-color: var(--matched-card-background, #a0e7a0);
+  transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes bounce {
