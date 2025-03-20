@@ -47,21 +47,40 @@ function initGame() {
   
   // Determine emoji set
   let currentSet;
-  if (config.currentEmojiSet === 'random' || !config.currentEmojiSet) {
-    // Random set if not specified or random is selected
-    const emojiSetKeys = Object.keys(emojiSets);
-    const randomSetKey = emojiSetKeys[Math.floor(Math.random() * emojiSetKeys.length)];
-    currentSet = emojiSets[randomSetKey];
-    config.currentEmojiSet = randomSetKey;
+  
+  // Get all available emoji set keys (without 'random')
+  const emojiSetKeys = Object.keys(emojiSets);
+  
+  if (config.currentEmojiSet === 'random') {
+    // Select a truly random emoji set for this game
+    // If we had a previous random selection, try to avoid it
+    const availableSets = config.lastRandomEmojiSet 
+      ? emojiSetKeys.filter(key => key !== config.lastRandomEmojiSet)
+      : emojiSetKeys;
+      
+    // Choose a random set from available sets
+    // If somehow all sets were used (though this shouldn't happen),
+    // just pick from all keys
+    const randomKey = availableSets.length > 0 
+      ? availableSets[Math.floor(Math.random() * availableSets.length)]
+      : emojiSetKeys[Math.floor(Math.random() * emojiSetKeys.length)];
+      
+    // Use the randomly selected set
+    currentSet = emojiSets[randomKey];
+    
+    // Store the last random key for next time
+    config.lastRandomEmojiSet = randomKey;
+    
+    // IMPORTANT: Keep config.currentEmojiSet as 'random' 
+    // so next game will pick random again
   } else if (emojiSets[config.currentEmojiSet]) {
-    // Use specified emoji set
+    // Use the specific non-random emoji set
     currentSet = emojiSets[config.currentEmojiSet];
   } else {
-    // Fallback to random if something goes wrong
-    const emojiSetKeys = Object.keys(emojiSets);
-    const randomSetKey = emojiSetKeys[Math.floor(Math.random() * emojiSetKeys.length)];
-    currentSet = emojiSets[randomSetKey];
-    config.currentEmojiSet = randomSetKey;
+    // Fallback if something went wrong
+    const randomKey = emojiSetKeys[Math.floor(Math.random() * emojiSetKeys.length)];
+    currentSet = emojiSets[randomKey];
+    config.lastRandomEmojiSet = randomKey;
   }
   
   // Set number of pairs based on difficulty and device

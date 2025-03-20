@@ -88,6 +88,9 @@ function selectEmojiSet(setKey) {
   // Update config
   config.currentEmojiSet = setKey;
   
+  // If random is selected, we'll handle the actual random set selection in initGame
+  // this ensures the config.currentEmojiSet remains 'random' for future random selections
+  
   // Restart game with new emoji set
   initGame();
 }
@@ -109,7 +112,7 @@ function initShareButton() {
     copiedMessage.style.opacity = '1';
     setTimeout(() => {
       copiedMessage.style.opacity = '0';
-    }, 2000);
+    }, 1500);
   }
 
   // Add a small animation/feedback when the button is clicked
@@ -129,7 +132,6 @@ function initShareButton() {
           text: 'Check out this fun memory game!',
           url: gameUrl
         });
-        showSuccessMessage('Shared successfully!');
         return;
       }
       

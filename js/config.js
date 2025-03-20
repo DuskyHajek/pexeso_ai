@@ -6,7 +6,8 @@ const config = {
   timeElapsed: 0,
   timerInterval: null,
   currentGameScore: null,
-  currentEmojiSet: null
+  currentEmojiSet: null,
+  lastRandomEmojiSet: null  // New property to track last random emoji set
 };
 
 // Different emoji sets for variety

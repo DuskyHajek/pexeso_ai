@@ -228,6 +228,14 @@ button:active {
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 15px;
+  border-radius: 10px;
+}
+
 #leaderboard-table th {
   background-color: var(--card-background, #ffd166);
   color: var(--text-color, #5f27cd);
@@ -390,11 +398,69 @@ button:active {
   
   footer {
     margin-top: 10px;
-    padding: 5px;
+    padding: 12px 10px;
+    border-radius: 12px;
   }
   
-  footer a img {
-    max-width: 70px;
+  .footer-content {
+    gap: 12px;
+  }
+  
+  .logo-link {
+    min-width: 90px;
+    min-height: 38px;
+    padding: 6px;
+  }
+  
+  .duskyai-logo {
+    max-width: 80px;
+  }
+  
+  .share-btn {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .share-btn .share-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  /* Additional leaderboard styling for very small screens */
+  #leaderboard-content {
+    padding: 10px;
+    max-width: 95%;
+    width: 95%;
+  }
+  
+  #leaderboard-table {
+    font-size: 0.8rem;
+  }
+  
+  #leaderboard-table th,
+  #leaderboard-table td {
+    padding: 6px 4px;
+  }
+  
+  /* Adjust column widths for very small screens */
+  #leaderboard-table th:nth-child(1),
+  #leaderboard-table td:nth-child(1) {
+    width: 15%; /* Rank column */
+  }
+  
+  #leaderboard-table th:nth-child(2),
+  #leaderboard-table td:nth-child(2) {
+    width: 35%; /* Name column - slightly smaller */
+  }
+  
+  #leaderboard-table th:nth-child(3),
+  #leaderboard-table td:nth-child(3) {
+    width: 20%; /* Time column */
+  }
+  
+  #leaderboard-table th:nth-child(4),
+  #leaderboard-table td:nth-child(4) {
+    width: 30%; /* Difficulty column - slightly larger */
   }
 }
 
@@ -439,8 +505,10 @@ button:active {
   }
   
   footer {
-    margin-top: 5px;
-    padding: 3px;
+    margin-top: 10px;
+    padding: 10px;
+    flex-direction: row;
+    justify-content: center;
   }
 }
 
@@ -475,36 +543,116 @@ button:active {
   }
   
   footer {
-    margin-top: 5px;
-    padding: 3px;
+    margin-top: 8px;
+    padding: 8px;
   }
 }
 
 /* Footer styling */
 footer {
   margin-top: 20px; 
-  padding: 10px; 
-  background-color: rgba(255,255,255,0.3); 
-  border-radius: 10px; 
+  padding: 15px; 
+  background: linear-gradient(135deg, rgba(95, 39, 205, 0.2), rgba(161, 94, 255, 0.3)); 
+  border-radius: 15px; 
+  box-shadow: 0 4px 12px rgba(95, 39, 205, 0.15);
   display: flex; 
   align-items: center; 
   justify-content: center; 
-  gap: 10px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  max-width: 400px;
+  width: 100%;
 }
 
 footer span {
   font-family: 'Comic Neue', cursive; 
   color: #5f27cd;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-footer a:hover img {
-  transform: scale(1.1);
+.logo-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  min-width: 110px;
+  min-height: 44px;
 }
 
-footer a img {
+.logo-link:hover {
+  background-color: rgba(95, 39, 205, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(95, 39, 205, 0.2);
+}
+
+.logo-link:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(95, 39, 205, 0.1);
+}
+
+.duskyai-logo {
   max-width: 100px; 
   height: auto; 
   transition: transform 0.3s;
+}
+
+.logo-link:hover .duskyai-logo {
+  transform: scale(1.05);
+}
+
+.share-btn {
+  background-color: transparent;
+  border: 2px solid #5f27cd;
+  color: #5f27cd;
+  padding: 8px 15px;
+  border-radius: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.share-btn:hover {
+  background-color: #5f27cd;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(95, 39, 205, 0.2);
+}
+
+.share-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(95, 39, 205, 0.1);
+}
+
+.share-btn .share-icon {
+  width: 16px;
+  height: 16px;
+}
+
+#copied-message {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(95, 39, 205, 0.9);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+  font-family: 'Comic Neue', cursive;
 }
 
 #theme-toggle {
@@ -658,4 +806,70 @@ footer a img {
   transition: opacity 0.3s ease;
   font-family: 'Comic Neue', cursive;
   box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+/* Make leaderboard responsive on mobile */
+@media (max-width: 500px) {
+  #leaderboard-content {
+    padding: 15px;
+    max-width: 95%;
+    width: 95%;
+  }
+  
+  #leaderboard-table {
+    font-size: 0.9rem;
+    min-width: 300px; /* Ensures table columns have reasonable minimum width */
+  }
+  
+  #leaderboard-table th,
+  #leaderboard-table td {
+    padding: 8px 5px;
+  }
+  
+  /* Set fixed width for each column to control layout */
+  #leaderboard-table th:nth-child(1),
+  #leaderboard-table td:nth-child(1) {
+    width: 15%; /* Rank column */
+  }
+  
+  #leaderboard-table th:nth-child(2),
+  #leaderboard-table td:nth-child(2) {
+    width: 40%; /* Name column */
+  }
+  
+  #leaderboard-table th:nth-child(3),
+  #leaderboard-table td:nth-child(3) {
+    width: 20%; /* Time column */
+  }
+  
+  #leaderboard-table th:nth-child(4),
+  #leaderboard-table td:nth-child(4) {
+    width: 25%; /* Difficulty column */
+  }
+  
+  #leaderboard-title {
+    font-size: 1.5rem;
+  }
+  
+  #submit-score-form {
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  #submit-score-form input,
+  #submit-score-form button {
+    padding: 8px 12px;
+    font-size: 0.95rem;
+  }
+  
+  footer {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 12px 10px;
+    gap: 8px;
+  }
+  
+  .footer-content {
+    gap: 10px;
+  }
 } 
