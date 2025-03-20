@@ -51,13 +51,21 @@ function initGame() {
   const randomSetKey = emojiSetKeys[Math.floor(Math.random() * emojiSetKeys.length)];
   currentEmojiSet = emojiSets[randomSetKey];
   
-  // Set number of pairs based on difficulty
+  // Set number of pairs based on difficulty and device
+  const isMobile = window.innerWidth < 768;
+  const isLandscape = window.innerWidth > window.innerHeight;
+  
   if (config.difficulty === 'easy') {
     pairsToMatch = 6;
   } else if (config.difficulty === 'medium') {
     pairsToMatch = 8;
   } else {
-    pairsToMatch = 10;
+    // For hard mode on small portrait mobile, limit to 8 pairs
+    if (isMobile && !isLandscape && window.innerWidth < 400) {
+      pairsToMatch = 8;
+    } else {
+      pairsToMatch = 10;
+    }
   }
   
   // Get emojis for this game
@@ -82,38 +90,91 @@ function initGame() {
 function setGridLayout() {
   const totalCards = pairsToMatch * 2;
   const isLandscape = window.innerWidth > window.innerHeight;
+  const isMobile = window.innerWidth < 768;
   
   // Determine optimal grid layout based on screen dimensions and difficulty
   let numColumns;
   
-  if (pairsToMatch === 6) {
-    // Easy mode: 3x4 grid in portrait, 4x3 in landscape
-    numColumns = isLandscape ? 4 : 3;
-  } else if (pairsToMatch === 8) {
-    // Medium mode: 4x4 grid in either orientation
-    numColumns = 4;
+  if (isMobile) {
+    // Mobile-specific layouts
+    if (pairsToMatch === 6) {
+      // Easy mode: 3x4 grid in portrait, 4x3 in landscape for mobile
+      numColumns = isLandscape ? 4 : 3;
+    } else if (pairsToMatch === 8) {
+      // Medium mode: Always 4x4 grid for better symmetry
+      numColumns = 4;
+    } else {
+      // Hard mode: 5x4 in landscape, 4x5 in portrait for mobile
+      numColumns = isLandscape ? 5 : 4;
+    }
   } else {
-    // Hard mode: 4x5 in portrait, 5x4 in landscape
-    numColumns = isLandscape ? 5 : 4;
+    // Desktop/tablet layouts
+    if (pairsToMatch === 6) {
+      // Easy mode: 3x4 grid in portrait, 4x3 in landscape
+      numColumns = isLandscape ? 4 : 3;
+    } else if (pairsToMatch === 8) {
+      // Medium mode: 4x4 grid in either orientation
+      numColumns = 4;
+    } else {
+      // Hard mode: 4x5 in portrait, 5x4 in landscape
+      numColumns = isLandscape ? 5 : 4;
+    }
   }
   
-  // Adjust layout based on aspect ratio of viewport
+  // Set grid template columns
   gameBoard.style.gridTemplateColumns = `repeat(${numColumns}, 1fr)`;
   
   // Calculate appropriate card size to fit within the viewport
-  const viewportWidth = Math.min(window.innerWidth * 0.9, 500);
-  const viewportHeight = window.innerHeight * 0.6; // Use only 60% of viewport height to avoid scrolling
-  
-  // Determine maximum card size based on grid dimensions and viewport
-  const maxCardWidth = (viewportWidth - ((numColumns - 1) * 10)) / numColumns; // Account for grid gap
+  const containerWidth = Math.min(window.innerWidth * 0.95, 500);
   const numRows = Math.ceil(totalCards / numColumns);
-  const maxCardHeight = (viewportHeight - ((numRows - 1) * 10)) / numRows;
   
-  // Set maximum card size based on the smaller dimension to maintain aspect ratio
+  // Determine available height for game board
+  // Account for other UI elements to prevent scrolling
+  const headerHeight = document.querySelector('h1').offsetHeight;
+  const controlsHeight = document.getElementById('controls').offsetHeight;
+  const scoreTimerHeight = document.getElementById('score-display').offsetHeight + 
+                           document.getElementById('timer').offsetHeight;
+  const footerHeight = document.querySelector('footer').offsetHeight;
+  
+  // Calculate available viewport height for the game board
+  const availableHeight = window.innerHeight - headerHeight - controlsHeight - 
+                          scoreTimerHeight - footerHeight - 40; // Add padding
+  
+  // Calculate grid gap based on available space
+  let gridGap;
+  if (isMobile) {
+    gridGap = isLandscape ? 6 : 5;
+  } else {
+    gridGap = Math.min(10, Math.max(5, Math.floor(availableHeight * 0.025)));
+  }
+  gameBoard.style.gap = `${gridGap}px`;
+  
+  // Calculate maximum possible card size based on available space
+  const totalHorizontalGap = gridGap * (numColumns - 1);
+  const totalVerticalGap = gridGap * (numRows - 1);
+  const maxCardWidth = (containerWidth - totalHorizontalGap) / numColumns;
+  const maxCardHeight = (availableHeight - totalVerticalGap) / numRows;
+  
+  // Set card size to maintain aspect ratio (1:1)
   const maxCardSize = Math.min(maxCardWidth, maxCardHeight);
   
-  // Apply sizing to cards (use CSS variables to control card size)
-  document.documentElement.style.setProperty('--card-size', `${maxCardSize}px`);
+  // Ensure minimum and maximum card sizes for usability
+  let cardSize;
+  if (isMobile) {
+    // For mobile, allow smaller cards but ensure they're not too small
+    const minCardSize = isLandscape ? 50 : 45;
+    cardSize = Math.max(minCardSize, Math.floor(maxCardSize));
+  } else {
+    // For desktop/tablet, keep cards larger for better interaction
+    cardSize = Math.max(60, Math.floor(maxCardSize));
+  }
+  
+  // Apply sizing to cards
+  document.documentElement.style.setProperty('--card-size', `${cardSize}px`);
+  
+  // Set font size for emojis based on card size
+  const emojiSize = Math.max(Math.floor(cardSize * 0.6), 24);
+  document.documentElement.style.setProperty('--emoji-size', `${emojiSize}px`);
 }
 
 // Shuffle function to randomize card positions
@@ -224,6 +285,9 @@ function addResizeListeners() {
   window.addEventListener('orientationchange', handleScreenChange);
   window.addEventListener('resize', handleScreenChange);
   
+  // Handle visibility changes (when user switches tabs/apps and returns)
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  
   // Initial layout setup
   setGridLayout();
 }
@@ -235,6 +299,14 @@ function handleScreenChange() {
   window.resizeTimer = setTimeout(() => {
     setGridLayout();
   }, 250);
+}
+
+// Handle visibility change (when user returns to the tab/app)
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible') {
+    // Recalculate layout when returning to the game
+    setGridLayout();
+  }
 }
 
 // Setup keyboard controls
@@ -255,11 +327,5 @@ function setupKeyboardControls() {
   });
 }
 
-export { 
-  initDOMElements, 
-  initGame, 
-  toggleDifficulty, 
-  addResizeListeners, 
-  setupKeyboardControls,
-  handleScreenChange 
-}; 
+// Export functions
+export { initDOMElements, initGame, toggleDifficulty, addResizeListeners, setupKeyboardControls, setGridLayout, handleVisibilityChange }; 

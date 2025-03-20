@@ -1,5 +1,6 @@
 :root {
   --card-size: 80px;
+  --emoji-size: 48px;
 }
 
 body {
@@ -49,7 +50,7 @@ p {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: clamp(1.5rem, 5vw, 2.8rem);
+  font-size: var(--emoji-size);
   background-color: #ffd166;
   color: transparent;
   border-radius: 10px;
@@ -60,6 +61,9 @@ p {
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   max-width: 100%;
+  position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
 }
 
 .card::before {
@@ -227,8 +231,13 @@ button:active {
   }
   
   #game-board {
-    gap: 6px;
-    margin: 10px auto;
+    gap: 5px;
+    margin: 5px auto;
+    max-width: 95%;
+  }
+  
+  .card {
+    border-width: 2px;
   }
   
   #score-display, #timer {
@@ -243,6 +252,52 @@ button:active {
   
   footer a img {
     max-width: 70px;
+  }
+}
+
+/* For landscape mode on mobile devices */
+@media (max-width: 768px) and (orientation: landscape) {
+  #game-container {
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  h1 {
+    margin-top: 0;
+    margin-bottom: 2px;
+  }
+  
+  h1 img {
+    max-width: 120px;
+  }
+
+  #controls {
+    margin: 3px auto;
+  }
+  
+  button {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+  
+  #score-display, #timer {
+    font-size: 0.9rem;
+    margin: 3px 0;
+    display: inline-block;
+  }
+  
+  #timer {
+    margin-left: 10px;
+  }
+  
+  #game-board {
+    margin: 5px auto;
+  }
+  
+  footer {
+    margin-top: 5px;
+    padding: 3px;
   }
 }
 
