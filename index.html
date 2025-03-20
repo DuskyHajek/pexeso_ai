@@ -32,16 +32,14 @@
     }
     
     #game-container {
-      max-width: 500px;
+      max-width: min(95vw, 95vh, 500px);
       margin: 0 auto;
     }
     
     #game-board {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      width: 95vw;
-      max-width: 400px;
+      gap: min(2vw, 10px);
+      width: 100%;
       margin: 15px auto;
     }
     
@@ -50,7 +48,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 2.8rem;
+      font-size: clamp(1.5rem, 5vw, 2.8rem);
       background-color: #ffd166;
       color: transparent;
       border-radius: 10px;
@@ -562,19 +560,19 @@
         // Set number of pairs based on difficulty
         if (config.difficulty === 'easy') {
           pairsToMatch = 6;
-          gameBoard.style.gridTemplateColumns = 'repeat(3, 1fr)';
         } else if (config.difficulty === 'medium') {
           pairsToMatch = 8;
-          gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
         } else {
           pairsToMatch = 10;
-          gameBoard.style.gridTemplateColumns = 'repeat(5, 1fr)';
         }
         
         // Get emojis for this game
         const gameEmojis = currentEmojiSet.slice(0, pairsToMatch);
         const allEmojis = [...gameEmojis, ...gameEmojis];
         const shuffledEmojis = shuffle(allEmojis);
+
+        // Set up grid layout based on device orientation and difficulty
+        setGridLayout();
 
         // Create and add cards to the game board
         shuffledEmojis.forEach(emoji => {
@@ -586,6 +584,25 @@
         });
       }
       
+      // Add the new function to set grid layout
+      function setGridLayout() {
+        const numColumns = pairsToMatch === 6 ? 3 : pairsToMatch === 8 ? 4 : 5;
+        const totalCards = pairsToMatch * 2;
+        const isLandscape = window.innerWidth > window.innerHeight;
+        
+        if (isLandscape) {
+          // More columns in landscape
+          gameBoard.style.gridTemplateColumns = `repeat(${Math.ceil(Math.sqrt(totalCards))}, 1fr)`;
+        } else {
+          // Default layout
+          gameBoard.style.gridTemplateColumns = `repeat(${numColumns}, 1fr)`;
+        }
+      }
+      
+      // Add event listeners for orientation change and resize
+      window.addEventListener('orientationchange', setGridLayout);
+      window.addEventListener('resize', setGridLayout);
+
       // Shuffle function to randomize card positions
       function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
